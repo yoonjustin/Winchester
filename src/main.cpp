@@ -7,6 +7,7 @@
 #include <Adafruit_INA260.h>
 #include "PS4USB.h"
 #include "UNKNOWNUSB.h"
+#include "XBOXONEUSB.h"
 #include "USBHost_t36.h"
 //#include "defines.h"
 
@@ -48,13 +49,14 @@ uint32_t buttons;
 uint8_t joystick_left_trigger_value = 0;
 uint8_t joystick_right_trigger_value = 0;
 bool P1Config, P2Config = false;
+uint8_t polling1, polling2 = 0;
 //=============================================================================
 // DrawOled
 //=============================================================================
 void DrawOled(void) {
   display.clearDisplay();
   display.setCursor(0, 0);  
-  if ((P1Config == false)||(P2Config == false)) {
+  if ((P1Config == false)&&(P2Config == false)) {
     if (!found1) {
       display.write("ina260(5V) is not found\n");
     } else {
@@ -100,16 +102,19 @@ void DrawOled(void) {
     }
 
     //buttons
-    display.write("\nButton inputs:");
-    buttons = joystick1.getButtons();
-    char str[8];
-    display.write(__itoa( buttons, str, 10 ));
+    //display.write("\nButton inputs:");
+    //buttons = joystick1.getButtons();
+    //char str[8];
+    //display.write(__itoa( buttons, str, 10 ));
   } // end config if
   
-  if (P1Config == true) {
+  if ((P1Config == true)) {
     display.write("Player 1: ");
     display.write(controllerType[joystick1.joystickType()]);
-    
+    display.write("\n");
+    display.printf("vid: %X     ",joystick1.idVendor());
+    display.printf("pid: %X\n",joystick1.idProduct());
+    display.printf("Polling: %dHz",polling1);
     buttons = joystick1.getButtons();
     char str[8];
     display.write("\nButton inputs:");
@@ -119,7 +124,7 @@ void DrawOled(void) {
     P2Config = false;
   }
 
-  if (P2Config == true) {
+  if ((P2Config == true)&&(joystick2.available())) {
     display.write("Player 2: ");
     display.write(controllerType[joystick2.joystickType()]);
     
@@ -133,6 +138,8 @@ void DrawOled(void) {
   }
 
   display.display();
+  polling1 = 0;
+  polling2 = 0;
 }
 
 //=============================================================================
@@ -163,6 +170,7 @@ void PrintDeviceListChanges() {
 // ProcessJoystickData1
 //=============================================================================
 void ProcessJoystickData1() {
+  polling1++;
   if (joystick1.available()) {
     buttons = joystick1.getButtons();
 
@@ -182,15 +190,25 @@ void ProcessJoystickData1() {
         break;
       case JoystickController::XBOXONE:
       case JoystickController::XBOX360:
-        break;
-      default:
-        //treat unknown controllers as ps4? probably not a good idea
+        //enter config mode
         if ((buttons == 4864)&&(P1Config==false)){
           P1Config = true;
         } else if ((buttons == 4864)&&(P1Config==true)){
           P1Config = false;
         }
-        UNKNOWNUSB::Player1ProcessUnknownInputs(joystick1.getButtons(), joystick1.getAxis(9)); 
+        XBOXONEUSB::Player1ProcessXboxOneInputs(joystick1.getButtons(), joystick1.getAxis(3), joystick1.getAxis(4)); 
+        break;
+      default:
+        //Brook fighting board plus audio
+        if ((joystick1.idProduct() == 0xE30)&&(joystick1.idVendor()== 0xC12)) {
+          if ((buttons == 4864)&&(P1Config==false)){
+            P1Config = true;
+          } else if ((buttons == 4864)&&(P1Config==true)){
+            P1Config = false;
+          }
+          UNKNOWNUSB::Player1ProcessUnknownInputs(joystick1.getButtons(), joystick1.getAxis(9)); 
+        }
+
         break;
     }
 
@@ -201,54 +219,48 @@ void ProcessJoystickData1() {
 // ProcessJoystickData2
 //=============================================================================
 void ProcessJoystickData2() {
+  polling2++;
   if (joystick2.available()) {
     buttons = joystick2.getButtons();
-    uint8_t ltv;
-    uint8_t rtv;
+
     switch (joystick2.joystickType()) {
-      default:
-        break;
       case JoystickController::PS4:
-      //enter config mode
+        //enter config mode
         if ((buttons == 4864)&&(P2Config==false)){
           P2Config = true;
         } else if ((buttons == 4864)&&(P2Config==true)){
           P2Config = false;
         }
         joystick2.setLEDs(0xFF,0,0);
-        PS4USB::Player2ProcessPS4Inputs(joystick2.getButtons(), joystick2.getAxis(9)); 
+        PS4USB::Player1ProcessPS4Inputs(joystick2.getButtons(), joystick2.getAxis(9)); 
         break;
-
       case JoystickController::PS3:
-        break;
 
+        break;
       case JoystickController::XBOXONE:
       case JoystickController::XBOX360:
-        ltv = joystick2.getAxis(4);
-        rtv = joystick2.getAxis(5);
-        if ((ltv != joystick_left_trigger_value) || (rtv != joystick_right_trigger_value)) {
-          joystick_left_trigger_value = ltv;
-          joystick_right_trigger_value = rtv;
-          //joystick.setRumble(ltv, rtv);
-          //Serial.printf(" Set Rumble %d %d", ltv, rtv);
+        //enter config mode
+        if ((buttons == 4864)&&(P2Config==false)){
+          P2Config = true;
+        } else if ((buttons == 4864)&&(P2Config==true)){
+          P2Config = false;
         }
+        XBOXONEUSB::Player1ProcessXboxOneInputs(joystick2.getButtons(), joystick2.getAxis(3), joystick2.getAxis(4)); 
+        break;
+      default:
+        //Brook fighting board plus audio
+        if ((joystick2.idProduct() == 0xE30)&&(joystick2.idVendor()== 0xC12)) {
+          if ((buttons == 4864)&&(P2Config==false)){
+            P2Config = true;
+          } else if ((buttons == 4864)&&(P2Config==true)){
+            P2Config = false;
+          }
+          UNKNOWNUSB::Player1ProcessUnknownInputs(joystick2.getButtons(), joystick2.getAxis(9)); 
+        }
+
         break;
     }
 
-    /*
-    if (buttons != buttons_cur) {
-      if (joystick2.joystickType() == JoystickController::PS3) {
-        joystick2.setLEDs((buttons >> 12) & 0xf); //  try to get to TRI/CIR/X/SQuare
-      } else {
-        uint8_t lr = (buttons & 1) ? 0xff : 0;
-        uint8_t lg = (buttons & 2) ? 0xff : 0;
-        uint8_t lb = (buttons & 4) ? 0xff : 0;
-        joystick2.setLEDs(lr, lg, lb);
-      }
-      buttons_cur = buttons;
-    }
-    */
-    //tft_JoystickData();
     joystick2.joystickDataClear();
   }
 }
@@ -262,6 +274,7 @@ void setup() {
   Serial.begin(9600);
   delay(10);
 
+  //Set GPIO pins to output
   pinMode(P1_COIN, OUTPUT); 
   pinMode(P1_START, OUTPUT); 
   pinMode(P1_UP, OUTPUT); 
@@ -290,8 +303,11 @@ void setup() {
   pinMode(P2_B5_K, OUTPUT); 
   pinMode(P2_B6_K, OUTPUT);   
 
+  //Set low pass filter to off
   pinMode(25, OUTPUT);
   digitalWrite(25, HIGH);
+
+  //Detect the INA260's with i2c addresses
   if (!ina2601.begin(0x40,&Wire)) {
     found1 = false;
   } else {
@@ -304,10 +320,10 @@ void setup() {
     found2 = true;
   }
 
-  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+  //Initialize oled screen
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
+    for(;;); // not sure if we should hang if screen is not present
   }
 
   // Show initial display buffer contents on the screen --
@@ -323,7 +339,7 @@ void setup() {
   display.cp437(true);         // Use full 256 char 'Code Page 437' font
   display.setTextWrap(false);
 
-
+  //Start timers 
   myTimer.begin(DrawOled, 1000000);
   controllerPoller1.begin(ProcessJoystickData1, 4000);
   controllerPoller2.begin(ProcessJoystickData2, 4000);
@@ -333,6 +349,6 @@ void setup() {
 
 void loop() {
   myusb.Task();
-  PrintDeviceListChanges();
+  //PrintDeviceListChanges();
 }
 
