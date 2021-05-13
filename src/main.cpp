@@ -124,10 +124,13 @@ void DrawOled(void) {
     P2Config = false;
   }
 
-  if ((P2Config == true)&&(joystick2.available())) {
+  if ((P2Config == true)) {
     display.write("Player 2: ");
     display.write(controllerType[joystick2.joystickType()]);
-    
+    display.write("\n");
+    display.printf("vid: %X     ",joystick2.idVendor());
+    display.printf("pid: %X\n",joystick2.idProduct());
+    display.printf("Polling: %dHz",polling2);
     buttons = joystick2.getButtons();
     char str[8];
     display.write("\nButton inputs:");
@@ -191,9 +194,9 @@ void ProcessJoystickData1() {
       case JoystickController::XBOXONE:
       case JoystickController::XBOX360:
         //enter config mode
-        if ((buttons == 4864)&&(P1Config==false)){
+        if ((buttons == 32780)&&(P1Config==false)){
           P1Config = true;
-        } else if ((buttons == 4864)&&(P1Config==true)){
+        } else if ((buttons == 32780)&&(P1Config==true)){
           P1Config = false;
         }
         XBOXONEUSB::Player1ProcessXboxOneInputs(joystick1.getButtons(), joystick1.getAxis(3), joystick1.getAxis(4)); 
@@ -226,13 +229,10 @@ void ProcessJoystickData2() {
     switch (joystick2.joystickType()) {
       case JoystickController::PS4:
         //enter config mode
-        if ((buttons == 4864)&&(P2Config==false)){
-          P2Config = true;
-        } else if ((buttons == 4864)&&(P2Config==true)){
-          P2Config = false;
-        }
+        if ((buttons == 4864)&&(P2Config==false)){ P2Config = true;} 
+          else if ((buttons == 4864)&&(P2Config==true)){  P2Config = false; }
         joystick2.setLEDs(0xFF,0,0);
-        PS4USB::Player1ProcessPS4Inputs(joystick2.getButtons(), joystick2.getAxis(9)); 
+        PS4USB::Player2ProcessPS4Inputs(joystick2.getButtons(), joystick2.getAxis(9)); 
         break;
       case JoystickController::PS3:
 
@@ -240,12 +240,12 @@ void ProcessJoystickData2() {
       case JoystickController::XBOXONE:
       case JoystickController::XBOX360:
         //enter config mode
-        if ((buttons == 4864)&&(P2Config==false)){
+        if ((buttons == 32780)&&(P2Config==false)){
           P2Config = true;
-        } else if ((buttons == 4864)&&(P2Config==true)){
+        } else if ((buttons == 32780)&&(P2Config==true)){
           P2Config = false;
         }
-        XBOXONEUSB::Player1ProcessXboxOneInputs(joystick2.getButtons(), joystick2.getAxis(3), joystick2.getAxis(4)); 
+        XBOXONEUSB::Player2ProcessXboxOneInputs(joystick2.getButtons(), joystick2.getAxis(3), joystick2.getAxis(4)); 
         break;
       default:
         //Brook fighting board plus audio
@@ -255,7 +255,7 @@ void ProcessJoystickData2() {
           } else if ((buttons == 4864)&&(P2Config==true)){
             P2Config = false;
           }
-          UNKNOWNUSB::Player1ProcessUnknownInputs(joystick2.getButtons(), joystick2.getAxis(9)); 
+          UNKNOWNUSB::Player2ProcessUnknownInputs(joystick2.getButtons(), joystick2.getAxis(9)); 
         }
 
         break;
