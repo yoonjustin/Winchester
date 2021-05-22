@@ -6,7 +6,7 @@
 class PS4BT {
     public:
         static void Player1ProcessPS4BTInputs(uint32_t);
-        static void Player2ProcessPS4Inputs(uint32_t);
+        static void Player2ProcessPS4BTInputs(uint32_t);
     private:
         PS4BT() {};
 };

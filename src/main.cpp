@@ -10,8 +10,6 @@
 #include "UNKNOWNUSB.h"
 #include "XBOXONEUSB.h"
 #include "USBHost_t36.h"
-#include "fonts/TomThumb.h"
-//#include "defines.h"
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -33,13 +31,15 @@ JoystickController joystick1(myusb);
 JoystickController joystick2(myusb);
 
 //BluetoothController bluet(myusb, true, "0000");
-BluetoothController bluet(myusb);
+BluetoothController blue1(myusb);
+//BluetoothController blue2(myusb);
+
 USBHIDParser hid1(myusb);
 USBHIDParser hid2(myusb);
 
-USBDriver * drivers[] = {&hub1, &hub2, &joystick1, &joystick2, &hid1, &hid2, &bluet};
+USBDriver * drivers[] = {&hub1, &hub2, &joystick1, &joystick2, &hid1, &hid2, &blue1};
 #define CNT_DEVICES (sizeof(drivers)/sizeof(drivers[0]))
-const char * driver_names[CNT_DEVICES] = {"Hub1", "Hub2", "Controller1", "Controller2", "HID1", "HID2", "Bluet"};
+const char * driver_names[CNT_DEVICES] = {"Hub1", "Hub2", "Controller1", "Controller2", "HID1", "HID2", "Blue1"};
 bool driver_active[CNT_DEVICES] = {false, false, false, false, false, false, false};
 const char * controllerType[] = { "UNKNOWN", "PS3", "PS4", "XBOXONE", "XBOX360", "PS3_MOTION", "SpaceNav" };
 
@@ -106,33 +106,23 @@ void DrawOled(void) {
     display.write("     Controllers\n");
     if (joystick1.operator bool()) {
       display.printf("P1: %s ",controllerType[joystick1.joystickType()]);
-      //display.printf(driver_active[2] ? "- USB\n":"");
-      
       display.printf(bthid_driver_active[0] ? "- BT\n":"- USB\n");
     } else {
       display.write("P1: unplugged\n");
     }
-    display.write(bthid_driver_active[0]? "bt1 drive:true\n":"bt1 driver: false\n");
-    display.write(driver_active[4] ? "hid driver: true\n" : "hid driver: false\n");
-    display.write(driver_active[2] ? "con driver: true" : "con driver: false");
-/*
-    const uint8_t *psz_m2 = joystick2.manufacturer();
-    if (psz_m2 != NULL) {
-      display.printf("Player 2: %s\n",psz_m2);
-      display.write(controllerType[joystick2.joystickType()]);
-      display.write(" - default map\n");
+
+    if (joystick2.operator bool()) {
+      display.printf("P2: %s ",controllerType[joystick2.joystickType()]);
+      display.printf(bthid_driver_active[1] ? "- BT\n":"- USB\n");
     } else {
-      display.write("Player 2: ");
+      display.write("P2: unplugged\n\n\n");
     }
-*/
-    //if (bluet.)
-    //buttons
-    //display.write("\nButton inputs:");
-    //buttons = joystick1.getButtons();
-    //char str[8];
-    //display.write(__itoa( buttons, str, 10 ));
+    
+
+    display.write(driver_active[6] ? "bt dongle: connected" : "");
   } // end config if
   
+
   if ((P1Config == true)) {
     const uint8_t *psz_m1 = joystick1.manufacturer();
     display.write("Player 1: ");
@@ -141,32 +131,41 @@ void DrawOled(void) {
     } else {
       display.write("None");
     }
-    display.write("\n");
-    display.printf("%s\n",psz_m1);
+    display.printf("\n%s\n",psz_m1);
     display.printf("vid: %X  ",joystick1.idVendor());
     display.printf("pid: %X\n",joystick1.idProduct());
     display.printf("Polling: %dHz",polling1*2);
     buttons = joystick1.getButtons();
-    char str[8];
     display.write("\nButton inputs:");
-    display.write(__itoa( buttons, str, 10 ));
+    if (bthid_driver_active[0]){
+      display.printf("%d", buttons^8);
+    } else {
+      display.printf("%d", buttons);
+    }
     display.write("\nButton Map: ");
     display.write("default\n");
-     
     P2Config = false;
   }
 
   if ((P2Config == true)) {
+    const uint8_t *psz_m2 = joystick2.manufacturer();
     display.write("Player 2: ");
-    display.write(controllerType[joystick2.joystickType()]);
-    display.write("\n");
-    display.printf("vid: %X     ",joystick2.idVendor());
+    if (joystick2.operator bool()){
+      display.write(controllerType[joystick2.joystickType()]);
+    } else {
+      display.write("None");
+    }
+    display.printf("\n%s\n",psz_m2);
+    display.printf("vid: %X  ",joystick2.idVendor());
     display.printf("pid: %X\n",joystick2.idProduct());
     display.printf("Polling: %dHz",polling2);
     buttons = joystick2.getButtons();
-    char str[8];
     display.write("\nButton inputs:");
-    display.write(__itoa( buttons, str, 10 ));
+    if (bthid_driver_active[1]){
+      display.printf("%d", buttons^8);
+    } else {
+      display.printf("%d", buttons);
+    }
     display.write("\nButton Map: ");
     display.write("default\n");
     P1Config = false;
@@ -219,8 +218,8 @@ void PrintDeviceListChanges() {
         psz = drivers[i]->serialNumber();
         if (psz && *psz) Serial.printf("  Serial: %s\n", psz);
 
-        if (drivers[i] == &bluet) {
-          const uint8_t *bdaddr = bluet.myBDAddr();
+        if (drivers[i] == &blue1) {
+          const uint8_t *bdaddr = blue1.myBDAddr();
           // remember it...
           Serial.printf("  BDADDR: %x:%x:%x:%x:%x:%x\n", bdaddr[0], bdaddr[1], bdaddr[2], bdaddr[3], bdaddr[4], bdaddr[5]);
           for (uint8_t i = 0; i < 6; i++) last_bdaddr[i] = bdaddr[i];
@@ -259,7 +258,7 @@ void ProcessJoystickData1() {
           P1Config = false;
         }
         joystick1.setLEDs(0,0,0xFF);
-        PS4USB::Player1ProcessPS4Inputs(joystick1.getButtons(), joystick1.getAxis(9)); 
+        PS4USB::Player1ProcessPS4Inputs(buttons, joystick1.getAxis(9)); 
         break;}
       case JoystickController::PS3:
         break;
@@ -299,7 +298,7 @@ void ProcessJoystickData1() {
           P1Config = false;
         }
         joystick1.setLEDs(0,0xFF,0);
-        PS4BT::Player1ProcessPS4BTInputs(joystick1.getButtons()); 
+        PS4BT::Player1ProcessPS4BTInputs(buttons^8); 
         break;}
       default:
         break;
@@ -307,20 +306,14 @@ void ProcessJoystickData1() {
   }
 
   joystick1.joystickDataClear();
-/* BAD JUJU NO GOOD
-  if(!joystick1.available()){
-    hid_driver_active[0] = false;
-    //bthid_driver_active[0] = false;
-    JoystickController joystick1(myusb);
-    //bthiddrivers[0] = &joystick1;
-  }*/
 }
 //=============================================================================
 // ProcessJoystickData2
 //=============================================================================
 void ProcessJoystickData2() {
   polling2++;
-  if (joystick2.available()) {
+  //USB connected controller
+  if ((joystick2.available())&&(bthid_driver_active[1]==false)) {
     buttons = joystick2.getButtons();
 
     switch (joystick2.joystickType()) {
@@ -357,9 +350,29 @@ void ProcessJoystickData2() {
 
         break;
     }
-
-    joystick2.joystickDataClear();
   }
+
+  //BT Connections
+  if ((joystick2.available())&&(bthid_driver_active[1]==true)) {
+    buttons = joystick2.getButtons();
+    switch (joystick2.joystickType()) {
+      case JoystickController::PS4: {
+        //enter config mode
+        if ((buttons == 9)&&(P2Config==false)){
+          P1Config = true;
+        } else if ((buttons == 9)&&(P2Config==true)){
+          P1Config = false;
+        }
+        joystick2.setLEDs(0xFF,0xFF,0);
+        PS4BT::Player2ProcessPS4BTInputs(buttons^8); 
+        break;}
+      default:
+        break;
+    }
+  }
+
+
+  joystick2.joystickDataClear();
 }
 
 
