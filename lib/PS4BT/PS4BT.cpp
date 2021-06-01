@@ -5,31 +5,68 @@
 //Player 1 ps4 connected through bt are parsed to the output jamma pins
 //=============================================================================
 void PS4BT::Player1ProcessPS4BTInputs(uint32_t buttons) {
-  if (buttons==PS4BT_UP){
-    digitalWrite(P1_UP, HIGH);
-  } else {
-    digitalWrite(P1_UP, LOW);
+  byte dpad = (byte)buttons & 0xF; 
+  switch(dpad){
+    case 0:
+        digitalWrite(P1_UP,LOW);
+        digitalWrite(P1_DOWN,LOW);
+        digitalWrite(P1_LEFT,LOW);
+        digitalWrite(P1_RIGHT,LOW);
+        break;
+    case PS4BT_UP:
+        digitalWrite(P1_UP,HIGH);
+        digitalWrite(P1_DOWN,LOW);
+        digitalWrite(P1_LEFT,LOW);
+        digitalWrite(P1_RIGHT,LOW);
+        break;
+    case PS4BT_DOWN:
+        digitalWrite(P1_UP,LOW);
+        digitalWrite(P1_DOWN,HIGH);
+        digitalWrite(P1_LEFT,LOW);
+        digitalWrite(P1_RIGHT,LOW);
+        break;
+    case PS4BT_LEFT:
+        digitalWrite(P1_UP,LOW);
+        digitalWrite(P1_DOWN,LOW);
+        digitalWrite(P1_LEFT,HIGH);
+        digitalWrite(P1_RIGHT,LOW);
+        break;
+    case PS4BT_RIGHT:
+        digitalWrite(P1_UP,LOW);
+        digitalWrite(P1_DOWN,LOW);
+        digitalWrite(P1_LEFT,LOW);
+        digitalWrite(P1_RIGHT,HIGH);
+        break; 
+    case PS4BT_UP_RIGHT: 
+        digitalWrite(P1_UP,HIGH);
+        digitalWrite(P1_DOWN,LOW);
+        digitalWrite(P1_LEFT,LOW);
+        digitalWrite(P1_RIGHT,HIGH);
+        break;  
+    case PS4BT_DOWN_RIGHT: 
+        digitalWrite(P1_UP,LOW);
+        digitalWrite(P1_DOWN,HIGH);
+        digitalWrite(P1_LEFT,LOW);
+        digitalWrite(P1_RIGHT,HIGH);
+        break; 
+    case PS4BT_DOWN_LEFT: 
+        digitalWrite(P1_UP,LOW);
+        digitalWrite(P1_DOWN,HIGH);
+        digitalWrite(P1_LEFT,HIGH);
+        digitalWrite(P1_RIGHT,LOW);
+        break; 
+    case PS4BT_UP_LEFT: 
+        digitalWrite(P1_UP,HIGH);
+        digitalWrite(P1_DOWN,LOW);
+        digitalWrite(P1_LEFT,HIGH);
+        digitalWrite(P1_RIGHT,LOW);
+        break;
+    default:
+        break;
   }
 
-  if (buttons&PS4BT_DOWN){
-    digitalWrite(P1_DOWN, HIGH);
-  } else {
-    digitalWrite(P1_DOWN, LOW);
-  }
   
-  if (buttons&PS4BT_LEFT){
-    digitalWrite(P1_LEFT, HIGH);
-  } else {
-    digitalWrite(P1_LEFT, LOW);
-  }
-
-  if (buttons&PS4BT_RIGHT){
-    digitalWrite(P1_RIGHT, HIGH);
-  } else {
-    digitalWrite(P1_RIGHT, LOW);
-  }
-
-    if (buttons&PS4BT_SQUARE){
+  if (buttons&PS4BT_SQUARE){
     digitalWrite(P1_B1, HIGH);
   } else {
     digitalWrite(P1_B1, LOW);
@@ -67,7 +104,7 @@ void PS4BT::Player1ProcessPS4BTInputs(uint32_t buttons) {
     digitalWrite(P1_COIN, LOW);
   }
   
-  if (buttons&PS4BT_R1){
+  if ((buttons&PS4BT_R1) == 20){
     digitalWrite(P1_B3, HIGH);
   } else {
     digitalWrite(P1_B3, LOW);

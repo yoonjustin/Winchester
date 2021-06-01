@@ -3,7 +3,7 @@
 #include <string> 
 #include <Adafruit_I2CDevice.h>
 #include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+#include "Adafruit_SSD1306.h"
 #include <Adafruit_INA260.h>
 #include "PS4USB.h"
 #include "PS4BT.h"
@@ -46,9 +46,9 @@ const char * controllerType[] = { "UNKNOWN", "PS3", "PS4", "XBOXONE", "XBOX360",
 
 USBHIDInput * hiddrivers[] = {&joystick1, &joystick2};
 
-//#define CNT_HIDDEVICES (sizeof(hiddrivers)/sizeof(hiddrivers[0]))
-//const char * hid_driver_names[CNT_HIDDEVICES] = {"Joystick1", "Joystick2"};
-//bool hid_driver_active[CNT_DEVICES] = {false, false};
+#define CNT_HIDDEVICES (sizeof(hiddrivers)/sizeof(hiddrivers[0]))
+const char * hid_driver_names[CNT_HIDDEVICES] = {"Joystick1", "Joystick2"};
+bool hid_driver_active[CNT_DEVICES] = {false, false};
 
 BTHIDInput * bthiddrivers[] = {&joystick1, &joystick2};
 #define CNT_BTHIDDEVICES (sizeof(bthiddrivers)/sizeof(bthiddrivers[0]))
@@ -138,7 +138,7 @@ void DrawOled(void) {
     buttons = joystick1.getButtons();
     display.write("\nButton inputs:");
     if (bthid_driver_active[0]){
-      display.printf("%d", buttons^8);
+      display.printf("%d", buttons^8); 
     } else {
       display.printf("%d", buttons);
     }

@@ -79,22 +79,25 @@
 //==============================================================
 //Playstation 4 BT button input values
 //==============================================================
-#define PS4BT_SHARE     160
-#define PS4BT_OPTION    320
-#define PS4BT_HOME      1
-#define PS4BT_L2        32
-#define PS4BT_R2        80
-#define PS4BT_L1        2
-#define PS4BT_R1        20
-#define PS4BT_TRIANGLE  524288
-#define PS4BT_CIRCLE    262144
-#define PS4BT_X         131072
-#define PS4BT_SQUARE    65536
-#define PS4BT_UP        8
-#define PS4BT_RIGHT     10
-#define PS4BT_DOWN      12
-#define PS4BT_LEFT      14
-
+#define PS4BT_SHARE      160
+#define PS4BT_OPTION     320
+#define PS4BT_HOME       1
+#define PS4BT_L2         32
+#define PS4BT_R2         80
+#define PS4BT_L1         2
+#define PS4BT_R1         20
+#define PS4BT_TRIANGLE   524288
+#define PS4BT_CIRCLE     262144
+#define PS4BT_X          131072
+#define PS4BT_SQUARE     65536
+#define PS4BT_UP         8
+#define PS4BT_RIGHT      10
+#define PS4BT_DOWN       12
+#define PS4BT_LEFT       14
+#define PS4BT_UP_RIGHT   9
+#define PS4BT_DOWN_RIGHT 11
+#define PS4BT_DOWN_LEFT  13
+#define PS4BT_UP_LEFT    15
 
 //==============================================================
 //Xbox One button input values
