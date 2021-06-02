@@ -138,7 +138,7 @@ void DrawOled(void) {
     buttons = joystick1.getButtons();
     display.write("\nButton inputs:");
     if (bthid_driver_active[0]){
-      display.printf("%d", buttons^8); 
+      display.printf("%d", buttons); 
     } else {
       display.printf("%d", buttons);
     }
@@ -298,7 +298,7 @@ void ProcessJoystickData1() {
           P1Config = false;
         }
         joystick1.setLEDs(0,0xFF,0);
-        PS4BT::Player1ProcessPS4BTInputs(buttons^8); 
+        PS4BT::Player1ProcessPS4BTInputs(buttons); 
         break;}
       default:
         break;
